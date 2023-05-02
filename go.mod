@@ -1,3 +1,3 @@
-module example.com/go_project
+module go_project
 
 go 1.20
