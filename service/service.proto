@@ -1,0 +1,32 @@
+syntax = "proto3";
+package service;
+option go_package = "github.com/gocjf0314/go_project";
+
+service ServiceInterface {
+    // Server -> Client, Listener
+    rpc InsertData(InsertMsg) returns(InsertReponse) {}
+
+    // Server <- Client, Listener
+    rpc GetData(GetMsg) returns(GetResponse) {}
+}
+
+message MessageData {
+    int32 index = 1;
+    string content = 2;
+}
+
+message InsertMsg {
+    int32 index = 1;
+}
+
+message InsertReponse {
+    MessageData message_data = 1;
+}
+
+message GetMsg {
+    int32 index = 1;
+}
+
+message GetResponse {
+    MessageData message_data = 1;
+}
