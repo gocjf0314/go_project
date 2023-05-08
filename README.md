@@ -117,6 +117,8 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go
 ### Create \*.pb.go
 
 ```zsh
-# Create
-protoc -I=. \ --go_out . --go_opt paths=source_relative \ --go-grpc_out . --go-grpc_opt paths=source_relative \ service.proto
+protoc -I=. \
+            --go_out . --go_opt paths=source_relative \
+            --go-grpc_out . --go-grpc_opt paths=source_relative \
+            service/service.proto
 ```
