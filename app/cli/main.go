@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	// "fmt"
@@ -6,11 +6,27 @@ import (
 	"net"
 	"os"
 
-	service "go_project/service"
+	"go_project/env"
+	// "go_project/service"
 
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
+
+func main() {
+	env.LoadEnv()
+
+	InitializeClientApp(os.Getenv("CLI_PORT"))
+
+	// Create Golang Channel
+	ch := make(chan int32)
+
+	// Channel get data from server
+	// go requestMsg()
+
+	var response int32 = <-ch
+
+	sendIndexToLisener(response)
+}
 
 /*
 Network: tcp
@@ -36,29 +52,4 @@ func InitializeClientApp(portNumber string) {
 	println("Run App....")
 }
 
-func requestMsg(msg service.InsertMsg) {
-
-}
-
-func sendIndexToLisener(index int32) {
-
-}
-
-func main() {
-	err := godotenv.Load("go.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	InitializeClientApp(os.Getenv("CLI_PORT"))
-
-	// Create Golang Channel
-	ch := make(chan int32)
-
-	// Channel get data from server
-	// go requestMsg()
-
-	var response int32 = <-ch
-
-	sendIndexToLisener(response)
-}
+func sendIndexToLisener(index int32)

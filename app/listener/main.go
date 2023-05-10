@@ -1,4 +1,4 @@
-package listener
+package main
 
 import (
 	"log"
@@ -8,6 +8,15 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
+
+func main() {
+	err := godotenv.Load("go.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	InitializeLisenter(os.Getenv("LISTENER_PORT"))
+}
 
 /*
 Network: tcp
@@ -36,12 +45,3 @@ func InitializeLisenter(portNumber string) {
 // func ListenClientRequest() (index int32)
 
 // func SendIndexToServer(index int32) servicepb.GetResponse
-
-func main() {
-	err := godotenv.Load("go.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	InitializeLisenter(os.Getenv("LISTENER_PORT"))
-}
