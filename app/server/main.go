@@ -1,24 +1,18 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
 	"log"
 	"net"
 	"os"
 
 	"go_project/env"
+	"go_project/handler"
 	"go_project/proto/message"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	"google.golang.org/grpc"
 )
-
-type ServiceServer struct {
-	message.ServiceInterfaceServer
-}
 
 func main() {
 	env.LoadEnv()
@@ -36,7 +30,7 @@ func InitializeGRPCServer(portNumber string) {
 
 	// Create new server
 	grpcServer := grpc.NewServer()
-	message.RegisterServiceInterfaceServer(grpcServer, &ServiceServer{})
+	message.RegisterMessageServiceServer(grpcServer, &handler.MessageHandler{})
 
 	log.Printf("start gRPC server on %s port", portNumber)
 	log.Printf("Running Server....")
@@ -46,64 +40,44 @@ func InitializeGRPCServer(portNumber string) {
 	}
 }
 
-func GetDSN() string {
-	username := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	database := os.Getenv("DB_NAME")
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, database)
+// func (s *MessageServer) GetData(ctx context.Context, req *message.GetMsg) (*message.GetResponse, error) {
+// 	index := req.Index
 
-	return dsn
-}
+// 	log.Print(req)
 
-func LoadDatabase() sql.DB {
-	db, err := sql.Open(os.Getenv("DATABASE"), GetDSN())
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
+// 	return &message.GetResponse{
+// 		MessageData: &message.MessageData{
+// 			Index:   index,
+// 			Content: "Hello wellcome to gRPC world!",
+// 		},
+// 	}, nil
+// }
 
-	return *db
-}
+// func (s *MessageServer) InsertData(ctx context.Context, res *message.InsertMsg) (*message.InsertReponse, error) {
+// 	messageData := res.MessageData
 
-func (s *ServiceServer) GetData(ctx context.Context, req *message.GetMsg) (*message.GetResponse, error) {
-	index := req.Index
+// 	createMessage(messageData)
 
-	log.Print(req)
+// 	return &message.InsertReponse{
+// 		Index: messageData.Index,
+// 	}, nil
+// }
 
-	return &message.GetResponse{
-		MessageData: &message.MessageData{
-			Index:   index,
-			Content: "Hello wellcome to gRPC world!",
-		},
-	}, nil
-}
+// func createMessage(messageData *message.MessageData) {
+// 	index := messageData.Index
+// 	content := fmt.Sprintf("%s(%d)", messageData.Content, index)
 
-func (s *ServiceServer) InsertData(ctx context.Context, res *message.InsertMsg) (*message.InsertReponse, error) {
-	messageData := res.MessageData
-	index := messageData.Index
-	content := fmt.Sprintf("%s(%d)", messageData.Content, index)
+// 	db := database.LoadConnection()
 
-	db := LoadDatabase()
+// 	query := "INSERT INTO `Messages` (`index`, `content`) VALUES (?, ?)"
+// 	insertResult, err := db.ExecContext(context.Background(), query, index, content)
+// 	if err != nil {
+// 		log.Fatalf("impossible insert teacher: %s", err)
+// 	}
 
-	query := "INSERT INTO `Messages` (`index`, `content`) VALUES (?, ?)"
-	insertResult, err := db.ExecContext(context.Background(), query, index, content)
-	if err != nil {
-		log.Fatalf("impossible insert teacher: %s", err)
-	}
-
-	id, err := insertResult.LastInsertId()
-	if err != nil {
-		log.Fatalf("impossible to retrieve last inserted id: %s", err)
-	}
-	log.Printf("inserted id: %v", id)
-
-	return &message.InsertReponse{
-		Index: index,
-	}, nil
-}
-
-// func listenClientRequest()
-// func (s *ServiceServer) InsertMsg(msg service.InsertMsg) (*service.InsertReponse, error)
-// func createMessage(msg service.MessageData)
+// 	id, err := insertResult.LastInsertId()
+// 	if err != nil {
+// 		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+// 	}
+// 	log.Printf("inserted id: %v", id)
+// }

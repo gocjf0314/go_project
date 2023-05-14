@@ -27,130 +27,247 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ServiceInterface_InsertData_FullMethodName = "/message.ServiceInterface/InsertData"
-	ServiceInterface_GetData_FullMethodName    = "/message.ServiceInterface/GetData"
+	MessageService_InsertData_FullMethodName   = "/message.MessageService/InsertData"
+	MessageService_GetData_FullMethodName      = "/message.MessageService/GetData"
+	MessageService_RequestMsg_FullMethodName   = "/message.MessageService/RequestMsg"
+	MessageService_SendData_FullMethodName     = "/message.MessageService/SendData"
+	MessageService_GetMsgFromDB_FullMethodName = "/message.MessageService/GetMsgFromDB"
 )
 
-// ServiceInterfaceClient is the client API for ServiceInterface service.
+// MessageServiceClient is the client API for MessageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ServiceInterfaceClient interface {
+type MessageServiceClient interface {
 	// Insert requested data to database
 	InsertData(ctx context.Context, in *InsertMsg, opts ...grpc.CallOption) (*InsertReponse, error)
 	// Get data from database
 	GetData(ctx context.Context, in *GetMsg, opts ...grpc.CallOption) (*GetResponse, error)
+	// Client request message to server
+	RequestMsg(ctx context.Context, in *RequestData, opts ...grpc.CallOption) (*ResponseData, error)
+	// Client send index data to listner
+	SendData(ctx context.Context, in *RequestData, opts ...grpc.CallOption) (*ResponseData, error)
+	// Listner send index to server then Get Msg
+	GetMsgFromDB(ctx context.Context, in *ListenerReq, opts ...grpc.CallOption) (*ListenerRes, error)
 }
 
-type serviceInterfaceClient struct {
+type messageServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewServiceInterfaceClient(cc grpc.ClientConnInterface) ServiceInterfaceClient {
-	return &serviceInterfaceClient{cc}
+func NewMessageServiceClient(cc grpc.ClientConnInterface) MessageServiceClient {
+	return &messageServiceClient{cc}
 }
 
-func (c *serviceInterfaceClient) InsertData(ctx context.Context, in *InsertMsg, opts ...grpc.CallOption) (*InsertReponse, error) {
+func (c *messageServiceClient) InsertData(ctx context.Context, in *InsertMsg, opts ...grpc.CallOption) (*InsertReponse, error) {
 	out := new(InsertReponse)
-	err := c.cc.Invoke(ctx, ServiceInterface_InsertData_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MessageService_InsertData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *serviceInterfaceClient) GetData(ctx context.Context, in *GetMsg, opts ...grpc.CallOption) (*GetResponse, error) {
+func (c *messageServiceClient) GetData(ctx context.Context, in *GetMsg, opts ...grpc.CallOption) (*GetResponse, error) {
 	out := new(GetResponse)
-	err := c.cc.Invoke(ctx, ServiceInterface_GetData_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MessageService_GetData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ServiceInterfaceServer is the server API for ServiceInterface service.
-// All implementations must embed UnimplementedServiceInterfaceServer
+func (c *messageServiceClient) RequestMsg(ctx context.Context, in *RequestData, opts ...grpc.CallOption) (*ResponseData, error) {
+	out := new(ResponseData)
+	err := c.cc.Invoke(ctx, MessageService_RequestMsg_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendData(ctx context.Context, in *RequestData, opts ...grpc.CallOption) (*ResponseData, error) {
+	out := new(ResponseData)
+	err := c.cc.Invoke(ctx, MessageService_SendData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) GetMsgFromDB(ctx context.Context, in *ListenerReq, opts ...grpc.CallOption) (*ListenerRes, error) {
+	out := new(ListenerRes)
+	err := c.cc.Invoke(ctx, MessageService_GetMsgFromDB_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MessageServiceServer is the server API for MessageService service.
+// All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility
-type ServiceInterfaceServer interface {
+type MessageServiceServer interface {
 	// Insert requested data to database
 	InsertData(context.Context, *InsertMsg) (*InsertReponse, error)
 	// Get data from database
 	GetData(context.Context, *GetMsg) (*GetResponse, error)
-	mustEmbedUnimplementedServiceInterfaceServer()
+	// Client request message to server
+	RequestMsg(context.Context, *RequestData) (*ResponseData, error)
+	// Client send index data to listner
+	SendData(context.Context, *RequestData) (*ResponseData, error)
+	// Listner send index to server then Get Msg
+	GetMsgFromDB(context.Context, *ListenerReq) (*ListenerRes, error)
+	mustEmbedUnimplementedMessageServiceServer()
 }
 
-// UnimplementedServiceInterfaceServer must be embedded to have forward compatible implementations.
-type UnimplementedServiceInterfaceServer struct {
+// UnimplementedMessageServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedMessageServiceServer struct {
 }
 
-func (UnimplementedServiceInterfaceServer) InsertData(context.Context, *InsertMsg) (*InsertReponse, error) {
+func (UnimplementedMessageServiceServer) InsertData(context.Context, *InsertMsg) (*InsertReponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InsertData not implemented")
 }
-func (UnimplementedServiceInterfaceServer) GetData(context.Context, *GetMsg) (*GetResponse, error) {
+func (UnimplementedMessageServiceServer) GetData(context.Context, *GetMsg) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetData not implemented")
 }
-func (UnimplementedServiceInterfaceServer) mustEmbedUnimplementedServiceInterfaceServer() {}
+func (UnimplementedMessageServiceServer) RequestMsg(context.Context, *RequestData) (*ResponseData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestMsg not implemented")
+}
+func (UnimplementedMessageServiceServer) SendData(context.Context, *RequestData) (*ResponseData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendData not implemented")
+}
+func (UnimplementedMessageServiceServer) GetMsgFromDB(context.Context, *ListenerReq) (*ListenerRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMsgFromDB not implemented")
+}
+func (UnimplementedMessageServiceServer) mustEmbedUnimplementedMessageServiceServer() {}
 
-// UnsafeServiceInterfaceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ServiceInterfaceServer will
+// UnsafeMessageServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MessageServiceServer will
 // result in compilation errors.
-type UnsafeServiceInterfaceServer interface {
-	mustEmbedUnimplementedServiceInterfaceServer()
+type UnsafeMessageServiceServer interface {
+	mustEmbedUnimplementedMessageServiceServer()
 }
 
-func RegisterServiceInterfaceServer(s grpc.ServiceRegistrar, srv ServiceInterfaceServer) {
-	s.RegisterService(&ServiceInterface_ServiceDesc, srv)
+func RegisterMessageServiceServer(s grpc.ServiceRegistrar, srv MessageServiceServer) {
+	s.RegisterService(&MessageService_ServiceDesc, srv)
 }
 
-func _ServiceInterface_InsertData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MessageService_InsertData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InsertMsg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceInterfaceServer).InsertData(ctx, in)
+		return srv.(MessageServiceServer).InsertData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ServiceInterface_InsertData_FullMethodName,
+		FullMethod: MessageService_InsertData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceInterfaceServer).InsertData(ctx, req.(*InsertMsg))
+		return srv.(MessageServiceServer).InsertData(ctx, req.(*InsertMsg))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ServiceInterface_GetData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MessageService_GetData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMsg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceInterfaceServer).GetData(ctx, in)
+		return srv.(MessageServiceServer).GetData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ServiceInterface_GetData_FullMethodName,
+		FullMethod: MessageService_GetData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceInterfaceServer).GetData(ctx, req.(*GetMsg))
+		return srv.(MessageServiceServer).GetData(ctx, req.(*GetMsg))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ServiceInterface_ServiceDesc is the grpc.ServiceDesc for ServiceInterface service.
+func _MessageService_RequestMsg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).RequestMsg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_RequestMsg_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).RequestMsg(ctx, req.(*RequestData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_SendData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendData(ctx, req.(*RequestData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_GetMsgFromDB_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListenerReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).GetMsgFromDB(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_GetMsgFromDB_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).GetMsgFromDB(ctx, req.(*ListenerReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// MessageService_ServiceDesc is the grpc.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ServiceInterface_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "message.ServiceInterface",
-	HandlerType: (*ServiceInterfaceServer)(nil),
+var MessageService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "message.MessageService",
+	HandlerType: (*MessageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "InsertData",
-			Handler:    _ServiceInterface_InsertData_Handler,
+			Handler:    _MessageService_InsertData_Handler,
 		},
 		{
 			MethodName: "GetData",
-			Handler:    _ServiceInterface_GetData_Handler,
+			Handler:    _MessageService_GetData_Handler,
+		},
+		{
+			MethodName: "RequestMsg",
+			Handler:    _MessageService_RequestMsg_Handler,
+		},
+		{
+			MethodName: "SendData",
+			Handler:    _MessageService_SendData_Handler,
+		},
+		{
+			MethodName: "GetMsgFromDB",
+			Handler:    _MessageService_GetMsgFromDB_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

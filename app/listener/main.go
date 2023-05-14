@@ -1,19 +1,18 @@
 package main
 
 import (
+	"go_project/env"
+	"go_project/handler"
+	"go_project/proto/message"
 	"log"
 	"net"
 	"os"
 
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	err := godotenv.Load("go.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	env.LoadEnv()
 
 	InitializeLisenter(os.Getenv("LISTENER_PORT"))
 }
@@ -32,6 +31,7 @@ func InitializeLisenter(portNumber string) {
 
 	// Create new server
 	grpcServer := grpc.NewServer()
+	message.RegisterMessageServiceServer(grpcServer, &handler.MessageHandler{})
 
 	log.Printf("start gRPC server on %s port", portNumber)
 	if err := grpcServer.Serve(lis); err != nil {
@@ -41,7 +41,3 @@ func InitializeLisenter(portNumber string) {
 
 	println("Run App....")
 }
-
-// func ListenClientRequest() (index int32)
-
-// func SendIndexToServer(index int32) servicepb.GetResponse

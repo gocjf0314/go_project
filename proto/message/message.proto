@@ -11,12 +11,22 @@ syntax = "proto3";
 package message;
 option go_package = "github.com/gocjf0314/go_project/proto/message";
 
-service ServiceInterface {
+
+service MessageService {
     // Insert requested data to database
     rpc InsertData(InsertMsg) returns(InsertReponse) {}
 
     // Get data from database
     rpc GetData(GetMsg) returns(GetResponse) {}
+
+    // Client request message to server
+    rpc RequestMsg(RequestData) returns(ResponseData) {}
+
+    // Client send index data to listner
+    rpc SendData(RequestData) returns(ResponseData) {}
+
+    // Listner send index to server then Get Msg
+    rpc GetMsgFromDB(ListenerReq) returns(ListenerRes) {}
 }
 
 message MessageData {
@@ -30,6 +40,7 @@ message InsertMsg {
 
 message InsertReponse {
     int32 index = 1;
+    string status_code=2;
 }
 
 message GetMsg {
@@ -38,4 +49,21 @@ message GetMsg {
 
 message GetResponse {
     MessageData message_data = 1;
+}
+
+message RequestData {
+    MessageData message_data=1;
+}
+
+message ResponseData {
+    int32 index=1;
+    string status_code=2;
+}
+
+message ListenerReq {
+    int32 index=1;
+}
+
+message ListenerRes {
+    MessageData MessageData=1;
 }
