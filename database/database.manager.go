@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -15,7 +14,6 @@ func LoadConnection() sql.DB {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer db.Close()
 
 	return *db
 }
@@ -31,8 +29,9 @@ func GetDSN() string {
 	return dsn
 }
 
-func Create(table string, values ...any) (int64, error) {
+func Create(table string, values ...any) error {
 	db := LoadConnection()
+	defer db.Close()
 
 	var temp string
 	log.Print(temp)
@@ -45,28 +44,21 @@ func Create(table string, values ...any) (int64, error) {
 	}
 
 	query := fmt.Sprintf("INSERT INTO %s VALUES (%s)", table, temp)
-	insertResult, err := db.ExecContext(context.Background(), query, values...)
+	_, err := db.Query(query, values...)
 	if err != nil {
-		log.Fatalf("impossible insert teacher: %s", err)
-		return -1, err
+		log.Fatalf(err.Error())
+		return err
 	}
-
-	id, err := insertResult.LastInsertId()
-	if err != nil {
-		log.Fatalf("impossible to retrieve last inserted id: %s", err)
-		return -1, err
-	}
-
-	log.Printf("inserted id: %v", id)
-	return id, nil
+	return nil
 }
 
 func Update() {
 
 }
 
-func Read(columns []string, table string, where string) {
+func Read(columns []string, table string, where string) sql.Rows {
 	db := LoadConnection()
+	defer db.Close()
 
 	var selection string
 	for i := 0; i < len(columns); i++ {
@@ -78,12 +70,12 @@ func Read(columns []string, table string, where string) {
 	}
 
 	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s", selection, table, where)
-	result, err := db.QueryContext(context.Background(), query)
+	result, err := db.Query(query)
 	if err != nil {
-		log.Fatalf("impossible insert teacher: %s", err)
+		log.Fatalln(err.Error())
 	}
 
-	log.Printf("Result: %v", *result)
+	return *result
 }
 
 func Delete() {
