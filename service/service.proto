@@ -1,0 +1,61 @@
+/*
+service.proto 수정시 아래 명령어 실행
+
+protoc -I=. \
+            --go_out . --go_opt paths=source_relative \
+            --go-grpc_out . --go-grpc_opt paths=source_relative \
+            service/service.proto
+*/
+
+syntax = "proto3";
+package service;
+option go_package = "github.com/gocjf0314/go_project/service";
+
+service ServiceInterface {
+    // Server insert message into DB
+    rpc InsertData(InsertMsg) returns(InsertReponse) {}
+
+    // Server get message from DB
+    rpc GetData(GetMsg) returns(GetResponse) {}
+
+    // Client request server to save message to DB
+    rpc RequestServer(RequestMsg) returns(IndexData) {}
+
+    // Client send index of message to listner
+    rpc ClientToLis(IndexData) returns(ListenerRes) {}
+}
+
+message MessageData {
+    int32 index = 1;
+    string content = 2;
+}
+
+message InsertMsg {
+    MessageData message_data = 1;
+}
+
+message InsertReponse {
+    int32 index = 1;
+    string status_code = 2;
+}
+
+message GetMsg {
+    int32 index = 1;
+}
+
+message GetResponse {
+    MessageData message_data = 1;
+}
+
+message RequestMsg {
+    MessageData message_data = 1;
+}
+
+message IndexData {
+    int32 index = 1;
+}
+
+message ListenerRes {
+    MessageData message_data=1;
+}
+
