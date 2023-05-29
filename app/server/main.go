@@ -22,11 +22,14 @@ func InitializeServer(portNumber string) {
 		return
 	}
 
+	service.InitDB()
+
 	// Create new server
 	grpcServer := grpc.NewServer()
 	service.RegisterServiceInterfaceServer(grpcServer, &service.Server{})
 	log.Printf("Start gRPC server on %s port", portNumber)
 	log.Printf("Running Server....")
+
 	if err := grpcServer.Serve(lis); err != nil {
 		// TODO: Handle error...
 		log.Fatalf("InitializeServer[Serve]: %s", err)

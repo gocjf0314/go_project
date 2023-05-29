@@ -7,12 +7,12 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"go_project/env"
 	"go_project/service"
+	"go_project/utils"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -44,10 +44,10 @@ func main() {
 		content := strings.Join(splited, "")
 
 		// 서버 통신(gRPC)
-		server := make(chan int32)
+		server := make(chan string)
 
-		index := GetNowInt(time.Now().Local())
-		log.Printf("Index: %d", index)
+		index := utils.GetFormattedNow(time.Now().Local())
+		log.Printf("Index: %s", index)
 
 		message := service.MessageData{
 			Index:   index,
@@ -59,30 +59,31 @@ func main() {
 		index = <-server
 
 		// listener 양방향 통신(TCP Socket)
-		ListenerConnHandler(int(index))
+		ListenerConnHandler(index)
 	}
 }
 
-func RequestServerToProcessMsg(ctx context.Context, server chan int32, message *service.MessageData) {
-	res, err := client.RequestServer(
-		ctx,
-		&service.RequestMsg{MessageData: message},
-	)
+func RequestServerToProcessMsg(ctx context.Context, server chan string, message *service.MessageData) {
+	// 1. 서버로 메세지 저장 요청
+	// 2. 요청에 대한 응답 받기
+	// 3. status code와 index를 response에 할당
+	res, err := client.InsertData(ctx, &service.InsertMsg{
+		MessageData: message,
+	})
 	if err != nil {
-		log.Print(err.Error())
+		log.Fatalf(err.Error())
 		return
 	}
 	server <- res.Index
 }
 
-func ListenerConnHandler(index int) {
+func ListenerConnHandler(index string) {
 	// listener connector 객체 생성
 	lisConn := GetListenerConnector()
 	defer lisConn.Close()
 
 	// socket 버퍼로 listner에게 index 전송
-	value := strconv.Itoa(index)
-	lisConn.Write([]byte(value))
+	lisConn.Write([]byte(index))
 
 	// listener로 부터 버퍼로 응답 받기
 	buffer := make([]byte, 1024)
@@ -97,7 +98,7 @@ func ListenerConnHandler(index int) {
 }
 
 func GetServerConnector() *grpc.ClientConn {
-	host, portNumber := env.GetClientEnv()
+	host, portNumber := env.GetServerEnv()
 	serverAddress := fmt.Sprintf("%s:%s", host, portNumber)
 	log.Printf("server address: %s", host)
 	log.Printf("server port number: %s", portNumber)
@@ -111,28 +112,13 @@ func GetServerConnector() *grpc.ClientConn {
 }
 
 func GetListenerConnector() net.Conn {
-	listenerAddress := fmt.Sprintf("%s:%s", os.Getenv("LOCALHOST"), os.Getenv("LISTENER_PORT"))
+	host, port := env.GetListenerEnv()
+	listenerAddress := fmt.Sprintf("%s:%s", host, port)
 	conn, err := net.Dial("tcp", listenerAddress)
 	if err != nil {
 		log.Fatalf("서버에 연결할 수 없습니다: %v", err)
 	}
 	return conn
-}
-
-func GetNowInt(now time.Time) int32 {
-	year := now.Year()
-	month := ParseDigit(int(now.UTC().Month()))
-	day := ParseDigit(now.Day())
-	hour := ParseDigit(now.Hour())
-	minute := ParseDigit(now.Minute())
-	second := ParseDigit(now.Second())
-
-	result := fmt.Sprintf("%d%s%s%s%s%s", year, month, day, hour, minute, second)
-	index, err := strconv.Atoi(result)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	return int32(index)
 }
 
 func ParseDigit(num int) string {

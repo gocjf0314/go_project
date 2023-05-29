@@ -8,15 +8,14 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
-	"strconv"
 )
 
 func main() {
 	env.LoadEnv()
-
-	listenerAddress := fmt.Sprintf("%s:%s", os.Getenv("LOCALHOST"), os.Getenv("LISTENER_PORT"))
+	host, port := env.GetListenerEnv()
+	listenerAddress := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Connecting -> %s\n", listenerAddress)
+
 	listener, err := net.Listen("tcp", listenerAddress)
 	if err != nil {
 		// TODO: Handle error...
@@ -24,7 +23,8 @@ func main() {
 	}
 	defer listener.Close()
 
-	// 양방향으로 cli와 통신할 수 있는 채널을 만든다.
+	service.InitDB()
+
 	println("Run Listener....")
 	for {
 		// 클라이언트 연결 수신
@@ -41,6 +41,7 @@ func main() {
 }
 
 func ConnecHandler(conn net.Conn) {
+	// 양방향으로 cli와 통신할 수 있는 채널을 만든다.
 	recvBuf := make([]byte, 4096) // receive buffer: 4kB
 	for {
 		n, err := conn.Read(recvBuf)
@@ -55,11 +56,11 @@ func ConnecHandler(conn net.Conn) {
 		if 0 < n {
 			data := recvBuf[:n]
 			log.Println(string(data))
-			index, _ := strconv.Atoi(string(data))
+			index := string(data)
 
 			message, err := service.Server{}.GetData(
 				context.Background(),
-				&service.GetMsg{Index: int32(index)},
+				&service.GetMsg{Index: index},
 			)
 			if err != nil {
 				log.Print(err.Error())
@@ -67,7 +68,7 @@ func ConnecHandler(conn net.Conn) {
 			}
 			log.Println(message)
 
-			messageData := fmt.Sprintf("{index: %d, content: %s}", message.MessageData.Index, message.MessageData.Content)
+			messageData := fmt.Sprintf("{index: %s, content: %s}", message.MessageData.Index, message.MessageData.Content)
 			n, err := conn.Write([]byte(messageData))
 			if err != nil {
 				log.Fatalf("메시지 전송 중 오류가 발생했습니다: %v", err)
