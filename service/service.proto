@@ -17,16 +17,10 @@ service ServiceInterface {
 
     // Server get message from DB
     rpc GetData(GetMsg) returns(GetResponse) {}
-
-    // Client request server to save message to DB
-    rpc RequestServer(RequestMsg) returns(IndexData) {}
-
-    // Client send index of message to listner
-    rpc ClientToLis(IndexData) returns(ListenerRes) {}
 }
 
 message MessageData {
-    int32 index = 1;
+    string index = 1;
     string content = 2;
 }
 
@@ -35,27 +29,14 @@ message InsertMsg {
 }
 
 message InsertReponse {
-    int32 index = 1;
+    string index = 1;
     string status_code = 2;
 }
 
 message GetMsg {
-    int32 index = 1;
+    string index = 1;
 }
 
 message GetResponse {
     MessageData message_data = 1;
 }
-
-message RequestMsg {
-    MessageData message_data = 1;
-}
-
-message IndexData {
-    int32 index = 1;
-}
-
-message ListenerRes {
-    MessageData message_data=1;
-}
-

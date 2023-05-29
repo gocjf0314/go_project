@@ -27,10 +27,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ServiceInterface_InsertData_FullMethodName    = "/service.ServiceInterface/InsertData"
-	ServiceInterface_GetData_FullMethodName       = "/service.ServiceInterface/GetData"
-	ServiceInterface_RequestServer_FullMethodName = "/service.ServiceInterface/RequestServer"
-	ServiceInterface_ClientToLis_FullMethodName   = "/service.ServiceInterface/ClientToLis"
+	ServiceInterface_InsertData_FullMethodName = "/service.ServiceInterface/InsertData"
+	ServiceInterface_GetData_FullMethodName    = "/service.ServiceInterface/GetData"
 )
 
 // ServiceInterfaceClient is the client API for ServiceInterface service.
@@ -41,10 +39,6 @@ type ServiceInterfaceClient interface {
 	InsertData(ctx context.Context, in *InsertMsg, opts ...grpc.CallOption) (*InsertReponse, error)
 	// Server get message from DB
 	GetData(ctx context.Context, in *GetMsg, opts ...grpc.CallOption) (*GetResponse, error)
-	// Client request server to save message to DB
-	RequestServer(ctx context.Context, in *RequestMsg, opts ...grpc.CallOption) (*IndexData, error)
-	// Client send index of message to listner
-	ClientToLis(ctx context.Context, in *IndexData, opts ...grpc.CallOption) (*ListenerRes, error)
 }
 
 type serviceInterfaceClient struct {
@@ -73,24 +67,6 @@ func (c *serviceInterfaceClient) GetData(ctx context.Context, in *GetMsg, opts .
 	return out, nil
 }
 
-func (c *serviceInterfaceClient) RequestServer(ctx context.Context, in *RequestMsg, opts ...grpc.CallOption) (*IndexData, error) {
-	out := new(IndexData)
-	err := c.cc.Invoke(ctx, ServiceInterface_RequestServer_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *serviceInterfaceClient) ClientToLis(ctx context.Context, in *IndexData, opts ...grpc.CallOption) (*ListenerRes, error) {
-	out := new(ListenerRes)
-	err := c.cc.Invoke(ctx, ServiceInterface_ClientToLis_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ServiceInterfaceServer is the server API for ServiceInterface service.
 // All implementations must embed UnimplementedServiceInterfaceServer
 // for forward compatibility
@@ -99,10 +75,6 @@ type ServiceInterfaceServer interface {
 	InsertData(context.Context, *InsertMsg) (*InsertReponse, error)
 	// Server get message from DB
 	GetData(context.Context, *GetMsg) (*GetResponse, error)
-	// Client request server to save message to DB
-	RequestServer(context.Context, *RequestMsg) (*IndexData, error)
-	// Client send index of message to listner
-	ClientToLis(context.Context, *IndexData) (*ListenerRes, error)
 	mustEmbedUnimplementedServiceInterfaceServer()
 }
 
@@ -115,12 +87,6 @@ func (UnimplementedServiceInterfaceServer) InsertData(context.Context, *InsertMs
 }
 func (UnimplementedServiceInterfaceServer) GetData(context.Context, *GetMsg) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetData not implemented")
-}
-func (UnimplementedServiceInterfaceServer) RequestServer(context.Context, *RequestMsg) (*IndexData, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RequestServer not implemented")
-}
-func (UnimplementedServiceInterfaceServer) ClientToLis(context.Context, *IndexData) (*ListenerRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClientToLis not implemented")
 }
 func (UnimplementedServiceInterfaceServer) mustEmbedUnimplementedServiceInterfaceServer() {}
 
@@ -171,42 +137,6 @@ func _ServiceInterface_GetData_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ServiceInterface_RequestServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestMsg)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceInterfaceServer).RequestServer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ServiceInterface_RequestServer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceInterfaceServer).RequestServer(ctx, req.(*RequestMsg))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ServiceInterface_ClientToLis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IndexData)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceInterfaceServer).ClientToLis(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ServiceInterface_ClientToLis_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceInterfaceServer).ClientToLis(ctx, req.(*IndexData))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // ServiceInterface_ServiceDesc is the grpc.ServiceDesc for ServiceInterface service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -221,14 +151,6 @@ var ServiceInterface_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetData",
 			Handler:    _ServiceInterface_GetData_Handler,
-		},
-		{
-			MethodName: "RequestServer",
-			Handler:    _ServiceInterface_RequestServer_Handler,
-		},
-		{
-			MethodName: "ClientToLis",
-			Handler:    _ServiceInterface_ClientToLis_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
