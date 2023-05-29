@@ -18,7 +18,7 @@ func InitializeServer(portNumber string) {
 	lis, err := net.Listen("tcp", ":"+portNumber)
 	if err != nil {
 		// TODO: Handle error...
-		log.Fatalf("InitializeServer[net.Listen]]: %s", err.Error())
+		log.Fatalf("Error[InitializeServer]: %s", err.Error())
 		return
 	}
 
@@ -32,7 +32,7 @@ func InitializeServer(portNumber string) {
 
 	if err := grpcServer.Serve(lis); err != nil {
 		// TODO: Handle error...
-		log.Fatalf("InitializeServer[Serve]: %s", err)
+		log.Fatalf("Error[InitializeServer]: %s", err)
 	}
 }
 

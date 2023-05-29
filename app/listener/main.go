@@ -14,12 +14,13 @@ func main() {
 	env.LoadEnv()
 	host, port := env.GetListenerEnv()
 	listenerAddress := fmt.Sprintf("%s:%s", host, port)
-	log.Printf("Connecting -> %s\n", listenerAddress)
+	log.Printf("Addr(listener) %s\n", listenerAddress)
 
 	listener, err := net.Listen("tcp", listenerAddress)
 	if err != nil {
 		// TODO: Handle error...
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen")
+		log.Fatalf("Error[main]: %v", err)
 	}
 	defer listener.Close()
 
@@ -28,7 +29,7 @@ func main() {
 	println("Run Listener....")
 	for {
 		// 클라이언트 연결 수신
-		fmt.Println("Waiting for connecting with client......")
+		fmt.Println("Waiting for connecting with client....")
 		conn, err := listener.Accept()
 		if err != nil {
 			log.Fatalf(err.Error())
@@ -50,7 +51,8 @@ func ConnecHandler(conn net.Conn) {
 				log.Printf("connection is closed from client; %v", conn.RemoteAddr().String())
 				return
 			}
-			log.Printf("fail to receive data; err: %v", err)
+			log.Println("Fail to receive data")
+			log.Printf("Error[ConnecHandler]: %v", err)
 			return
 		}
 		if 0 < n {
@@ -63,15 +65,18 @@ func ConnecHandler(conn net.Conn) {
 				&service.GetMsg{Index: index},
 			)
 			if err != nil {
-				log.Print(err.Error())
+				log.Printf("Error[ConnecHandler]: %v", err.Error())
 				return
 			}
 			log.Println(message)
 
-			messageData := fmt.Sprintf("{index: %s, content: %s}", message.MessageData.Index, message.MessageData.Content)
+			index = message.MessageData.Index
+			content := message.MessageData.Content
+			messageData := fmt.Sprintf("{index: %s, content: %s}", index, content)
 			n, err := conn.Write([]byte(messageData))
 			if err != nil {
-				log.Fatalf("메시지 전송 중 오류가 발생했습니다: %v", err)
+				log.Fatalln("Occur Error during send message")
+				log.Fatalf("Error[ConnecHandler]: %v", err)
 			}
 			log.Printf("Data length: %d\n", n)
 		}

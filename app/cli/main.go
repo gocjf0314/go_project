@@ -43,30 +43,27 @@ func main() {
 		splited[len(splited)-1] = ""
 		content := strings.Join(splited, "")
 
-		// 서버 통신(gRPC)
+		// gRPC 통신에 쓸 GoChannel 생성
 		server := make(chan string)
 
 		index := utils.GetFormattedNow(time.Now().Local())
 		log.Printf("Index: %s", index)
 
-		message := service.MessageData{
+		go RequestServerToProcessMsg(ctx, server, &service.MessageData{
 			Index:   index,
 			Content: content,
-		}
+		})
 
-		go RequestServerToProcessMsg(ctx, server, &message)
-
+		// gRPC call 종료 후 channel을 통해 index 값 받기
 		index = <-server
 
-		// listener 양방향 통신(TCP Socket)
+		// listener 양방향 통신
 		ListenerConnHandler(index)
 	}
 }
 
 func RequestServerToProcessMsg(ctx context.Context, server chan string, message *service.MessageData) {
-	// 1. 서버로 메세지 저장 요청
-	// 2. 요청에 대한 응답 받기
-	// 3. status code와 index를 response에 할당
+	// 1. 서버로 메세지 저장 요청 후 응답 받기
 	res, err := client.InsertData(ctx, &service.InsertMsg{
 		MessageData: message,
 	})
@@ -89,7 +86,8 @@ func ListenerConnHandler(index string) {
 	buffer := make([]byte, 1024)
 	n, err := lisConn.Read(buffer)
 	if err != nil {
-		log.Fatalf("메시지 수신 중 오류가 발생했습니다: %v", err)
+		log.Fatalln("Occur Error during waiting response")
+		log.Fatalf("Error[ListenerConnHandler]: %v", err)
 	}
 
 	// 응답 내용 할당 및 로깅
@@ -100,13 +98,14 @@ func ListenerConnHandler(index string) {
 func GetServerConnector() *grpc.ClientConn {
 	host, portNumber := env.GetServerEnv()
 	serverAddress := fmt.Sprintf("%s:%s", host, portNumber)
-	log.Printf("server address: %s", host)
-	log.Printf("server port number: %s", portNumber)
+	log.Printf("Addr[server]: %s", host)
+	log.Printf("Port[server]: %s", portNumber)
 
 	var opts = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	conn, err := grpc.Dial(serverAddress, opts...)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalln("Can not connect with server")
+		log.Fatalf("Error[GetServerConnector]: %s", err.Error())
 	}
 	return conn
 }
@@ -116,14 +115,8 @@ func GetListenerConnector() net.Conn {
 	listenerAddress := fmt.Sprintf("%s:%s", host, port)
 	conn, err := net.Dial("tcp", listenerAddress)
 	if err != nil {
-		log.Fatalf("서버에 연결할 수 없습니다: %v", err)
+		log.Fatalln("Can not connect with listener")
+		log.Fatalf("Error[GetListenerConnector]: %s", err.Error())
 	}
 	return conn
-}
-
-func ParseDigit(num int) string {
-	if num < 10 {
-		return fmt.Sprintf("0%d", num)
-	}
-	return fmt.Sprintf("%d", num)
 }
